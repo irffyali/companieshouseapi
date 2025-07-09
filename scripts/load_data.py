@@ -21,7 +21,7 @@ def truncate_by_length(postcode):
 
 def load_data():
     
-    df = pd.read_csv("companies.csv", engine="pyarrow")
+    df = pd.read_csv("../data/companies.csv", engine="pyarrow")
     df.columns = df.columns.str.strip()
 
     df = df.rename(columns=rename_dict)
@@ -32,6 +32,7 @@ def load_data():
     for col in df.columns
     ]
 
+    df['incorporation_date'] = pd.to_datetime(df['incorporation_date'])
 
 
 
