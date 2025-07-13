@@ -4,11 +4,13 @@ from fastapi import FastAPI, HTTPException
 import pandas as pd
 from pydantic import BaseModel
 from datetime import date
-from load_data import load_data
+import load_data
 from typing import Optional
 
 app = FastAPI(title="The Companies House API", version="0.1")
-df = load_data()
+df = get_data()
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
 # Data model for incoming POST requests
 class Model(BaseModel):
     company_name: str
@@ -62,19 +64,17 @@ async def get_postprefix_data(postcode_prefix: str):
         result = result.head(10000)
 
     if result.empty:
-        raise HTTPException(status_code=404, detail="Company not found")
+        raise HTTPException(status_code=404, detail="No Companies found at Prefix")
     return [Model(**row.to_dict()) for _, row in result.iterrows()]
 
 
 @app.get("/date_range/",
-summary="Retrieves companies incorporated at a postcode prefix e.g. M1",
+summary="Retrieves companies incorporated bewteen date range",
  response_model=list[Model])
 async def get_date_range(start_date: str,end_date: str,limit: int = 10):
     
     start_date = pd.to_datetime(start_date)
     end_date = pd.to_datetime(end_date)
-    
-
     
     mask = (df['incorporation_date'] >= start_date) & (df['incorporation_date'] < end_date)
     result = df.loc[mask]
@@ -82,8 +82,8 @@ async def get_date_range(start_date: str,end_date: str,limit: int = 10):
     if len(result)>10000:
         result = result.head(10000)
     
-    # if result.empty:
-    #     raise HTTPException(status_code=404, detail="Company not found")
+    if result.empty:
+         raise HTTPException(status_code=404, detail="Company not found")
     return [Model(**row.to_dict()) for _, row in result.iterrows()]
 
 
