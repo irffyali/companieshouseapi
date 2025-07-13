@@ -26,15 +26,3 @@ def faiss_candiates(company,model):
     return distances, indices
 
 
-#faiss_candiates('Mega Munch',model = model)test
-    
-
-company_vec = model.encode(['Mega Munch'], convert_to_numpy=True)
-
-simmilarity = util.cos_sim(company_vec, embeddings)
-max_val = t.max(simmilarity).item()
-
-max_index = t.argmax(simmilarity).item()
-
-
-company_names[39049]
