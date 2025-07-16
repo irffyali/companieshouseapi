@@ -3,7 +3,7 @@ import numpy as np
 
 # Load a semantic embedding model
 model = SentenceTransformer("all-MiniLM-L6-v2")
-company_names = get_data()["companies_cleaned"]
+company_names = get_data()["companies_cleaned"].str.lower()
 # Sample company names
 
 

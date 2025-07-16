@@ -39,8 +39,6 @@ def get_data():
     df['companies_cleaned'] = df['company_name'].apply(basename)
 
 
-
-
     return df
 
 

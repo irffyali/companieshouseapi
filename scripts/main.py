@@ -1,15 +1,24 @@
 # main.py
 
+import os
+os.chdir("C:/Users/irffy/Documents/Learning/companies/scripts/")
+
 from fastapi import FastAPI, HTTPException
 import pandas as pd
 from pydantic import BaseModel
 from datetime import date
-import load_data
+import load_data as ld
 from typing import Optional
+from sentence_transformers import SentenceTransformer
+import entity_matching_faiss as emf
+
+
 
 app = FastAPI(title="The Companies House API", version="0.1")
-df = get_data()
+df = ld.get_data()
 model = SentenceTransformer("all-MiniLM-L6-v2")
+
+
 
 # Data model for incoming POST requests
 class Model(BaseModel):
@@ -86,4 +95,21 @@ async def get_date_range(start_date: str,end_date: str,limit: int = 10):
          raise HTTPException(status_code=404, detail="Company not found")
     return [Model(**row.to_dict()) for _, row in result.iterrows()]
 
+
+
+@app.get("/company_fuzzy_search/{company}",
+summary="return company based on best fuzzy match",
+ response_model=list[Model])
+async def get_best_match(company: str,limit: int = 10):
+    
+    company_names = df["companies_cleaned"]
+    best_match,best_score,best_index = emf.jaro_similarity(company,model,company_names)
+
+    
+    if best_score < 0.9:
+        raise HTTPException(status_code=404, detail="No Match Found")
+
+    result = df.loc[best_index]
+
+    return [Model(**row.to_dict()) for _, row in result.iterrows()]
 
