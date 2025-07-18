@@ -24,7 +24,9 @@ def truncate_by_length(postcode):
 
 def get_data():
     
-    df = pd.read_csv("../data/companies.csv", engine="pyarrow")
+    #df = pd.read_csv("../data/companies.csv", engine="pyarrow")
+    
+    df = pd.read_csv("companies.csv", engine="pyarrow")
     df.columns = df.columns.str.strip()
 
     df = df.rename(columns=rename_dict)

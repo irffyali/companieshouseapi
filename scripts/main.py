@@ -1,8 +1,5 @@
 # main.py
 
-import os
-os.chdir("C:/Users/irffy/Documents/Learning/companies/scripts/")
-
 from fastapi import FastAPI, HTTPException
 import pandas as pd
 from pydantic import BaseModel
@@ -11,11 +8,12 @@ import load_data as ld
 from typing import Optional
 from sentence_transformers import SentenceTransformer
 import entity_matching_faiss as emf
-
+import numpy as np
 
 
 app = FastAPI(title="The Companies House API", version="0.1")
 df = ld.get_data()
+df = df.replace({np.nan: None})
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
@@ -27,11 +25,11 @@ class Model(BaseModel):
     postcode: str 
     company_number: str
     sic_code1: str
-    sic_code2: str
-    sic_code3: str
-    sic_code4: str
+    sic_code2: Optional[str]
+    sic_code3: Optional[str]
+    sic_code4: Optional[str]
     incorporation_date: date
-    dissolution_date :Optional[str] = None
+    dissolution_date :Optional[str]
 
     
    
@@ -97,13 +95,13 @@ async def get_date_range(start_date: str,end_date: str,limit: int = 10):
 
 
 
-@app.get("/company_fuzzy_search/{company}",
+@app.get("/company_fuzzy_search/{company:path}",
 summary="return company based on best fuzzy match",
  response_model=list[Model])
-async def get_best_match(company: str,limit: int = 10):
+async def get_best_match(company: str):
     
     company_names = df["companies_cleaned"]
-    best_match,best_score,best_index = emf.jaro_similarity(company,model,company_names)
+    best_match,best_score,best_index = emf.jaro_similarity(company.lower(),model,company_names)
 
     
     if best_score < 0.9:
@@ -111,5 +109,5 @@ async def get_best_match(company: str,limit: int = 10):
 
     result = df.loc[best_index]
 
-    return [Model(**row.to_dict()) for _, row in result.iterrows()]
+    return [Model(**result.to_dict())]
 

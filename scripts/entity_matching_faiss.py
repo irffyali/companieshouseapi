@@ -34,12 +34,10 @@ def faiss_candiates(company,model):
 def jaro_similarity(company,model,company_names):
 
     distances,indeces = faiss_candiates(company,model)
-    candidates = company_names.iloc[indeces[0]]
+    candidates = company_names.iloc[indeces[0]].str.lower()
 
-    best_match, best_score = max(
-    ((c, jellyfish.jaro_winkler_similarity(company, c)) for c in candidates.str.lower()),
-    key=lambda x: x[1]
-    )
+
+    best_match, best_score = max(((c, jellyfish.jaro_winkler_similarity(company, c)) for c in candidates),key=lambda x: x[1])
     best_index = candidates[candidates == best_match].index[0]
 
 
